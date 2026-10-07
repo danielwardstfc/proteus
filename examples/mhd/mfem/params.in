@@ -1,0 +1,33 @@
+******** Mesh parameters *********
+nx              12    // mesh points in x-direction
+ny              12    // mesh points in y-direction
+nz              12    // mesh points in z-direction
+
+Lx            1.0    // domain size in x-direction
+Ly            1.0    // domain size in y-direction
+Lz            1.0    // domain size in z-direction
+
+clusterX      1.8    // mesh clustering in x-direction
+clusterY      1.8    // mesh clustering in y-direction
+clusterZ      1.8    // mesh clustering in z-direction
+
+******** Timestepping parameters ********
+t_final       2.0    // final time-step
+dt            0.01    // time-step
+vis_steps       1    // visualisation step frequency
+
+******** Dimensionless parameters ********
+Re            10.0    // Reynolds number
+Ha            10.0
+//Ha	          14.14   // sqrt(200) Hartmann number, dependent on half width of channel = 1.
+//Ha	          31.6228    // sqrt(1000) Hartmann number, dependent on half width of channel = 1.
+
+//Re             100.0
+//Ha             31.6228   // N = 10 case
+
+//Re              500.0
+//Ha              70.7107   // N = 10 case
+
+Bx            0.0     // Magnetic field (x-component)
+By            0.0     // Magnetic field (y-component)
+Bz            1.0     // Magnetic field (z-component)
