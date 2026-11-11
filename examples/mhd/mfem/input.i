@@ -1,47 +1,27 @@
 [Mesh]
-  type = MFEMMeshGeneratorMesh
-
-  [mfem_mesh_generators]
-      type = MFEMGeneratedMeshGenerator
-      dim = 3
-
-      nx = 12
-      ny = 12
-      nz = 12
-
-      xmax = 1.0
-      ymax = 1.0
-      zmax = 1.0
-
-      elem_type = HEX
-  []
+  type = MFEMFileMesh            # file-based MFEM mesh; name may differ in your MOOSE branch
+  file = box_clustered.mesh
 []
 
 [Problem]
   type = MFEMProblem
 []
 
-[FESpaces]
-[]
-
-[Variables]
-[]
-
-[Solvers]
-[]
-
 [ProblemComposers]
-  [default_steady]
+  [lmmhd]
     type = LmmhdProblemComposer
+    dt = 0.01
+    Re = 1
+    kappa = 1
+    B = '1 0 0'
   []
 []
 
 [Executioner]
-  type = MFEMSteady
+  type = MFEMTransient
+  dt = 0.01                  # must equal the composers dt
+  end_time = 0.2
   device = cpu
-[]
-
-[Postprocessors]
 []
 
 [Outputs]

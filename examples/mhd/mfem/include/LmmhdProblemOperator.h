@@ -11,38 +11,44 @@
 
 #pragma once
 
-#include "ProblemOperator.h"
+#include "TimeDependentProblemOperator.h"
 
-/**
- * Custom operator with a basic solve, using the same problem as mfem ex0p
+#include <fstream>
+#include <memory>
+
+// From liblmmhd (contrib/lmmhd/include).  These are .hpp, MOOSE's are .h,
+// so the flat include path can't pick up a MOOSE header by mistake.
+#include "parameters.hpp"
+#include "tools.hpp"
+#include "Discretisation.hpp"
+#include "LmmhdTimeStepper.hpp"
+
+/*
+  Thin MOOSE wrapper around lmmhd::LmmhdTimeStepper.
+
+  Init()  : build the FE spaces on MOOSE's mesh, the boundary conditions and
+            the time stepper.
+  Solve() : called by MFEMTransient once per MOOSE time step -> one
+            SolveTimeStep().
+
  */
-class LmmhdProblemOperator : public Moose::MFEM::ProblemOperator
+class LmmhdProblemOperator : public Moose::MFEM::TimeDependentProblemOperator
 {
-private:
-  // The linear and bilinear forms
-  //mfem::ParBilinearForm * _a;
-  //mfem::ParLinearForm * _b;
-
-  // The boundary conditions arrays
-  mfem::Array<int> _boundary_dofs;
-
-  // The operator and solution vectors (could
-  // potentially use the ones in the base class)
-  mfem::OperatorHandle _problem_operator; // The actual mfem problem operator
-  mfem::Vector _B, _X;
-
 public:
-  // The constructor
-  LmmhdProblemOperator(MFEMProblem & mfem_problem);
+  LmmhdProblemOperator(MFEMProblem & mfem_problem,
+                       const lmmhd::Parameters & params);
 
-  // The destructor
-  ~LmmhdProblemOperator() override;
-
-  // The initialisation function
   void Init(mfem::BlockVector &) override;
 
-  // Solve the equation
   void Solve() override;
+
+private:
+  lmmhd::Parameters _params;
+
+  std::ofstream _log_file;
+  std::unique_ptr<Logger> _logger;
+  std::unique_ptr<Discretisation> _disc;
+  std::unique_ptr<LmmhdTimeStepper> _stepper;
 };
 
 #endif

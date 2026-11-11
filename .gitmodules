@@ -1,0 +1,4 @@
+[submodule "examples/mhd/mfem/contrib/lmmhd"]
+	path = examples/mhd/mfem/contrib/lmmhd
+	url = https://github.com/farscape-project/mfem_liquid_metal_mhd
+	branch = main

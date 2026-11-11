@@ -15,8 +15,8 @@
 #include "LmmhdProblemOperator.h"
 
 /**
- * Custom Dummy Operator builder required to build MFEM Problem Operators
- * used by the executioner
+ * Reads the LMMHD parameters from the input file and creates the
+ * LmmhdProblemOperator that MFEMTransient will drive.
  */
 class LmmhdProblemComposer : public MFEMProblemComposer
 {
@@ -25,9 +25,11 @@ public:
 
   LmmhdProblemComposer(const InputParameters & parameters);
 
-  /// Returns a pointer to a freshly minted operator.
   std::shared_ptr<Moose::MFEM::ProblemOperatorBase>
   createProblemOperator(MFEMProblem & mfem_problem) override;
+
+private:
+  lmmhd::Parameters _lmmhd_params;
 };
 
 #endif
