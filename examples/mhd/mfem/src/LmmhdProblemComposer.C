@@ -28,6 +28,11 @@ LmmhdProblemComposer::validParams()
   params.addParam<std::vector<Real>>("B", {0.0, 0.0, 1.0}, "Applied magnetic field direction.");
 
   params.addParam<bool>("use_ads", true, "Current-density block: CG+ADS (true) or MUMPS (false).");
+
+  params.addParam<VariableName>("current_density", "current_density", "MOOSE variable that receives j.");
+  params.addParam<VariableName>("electric_potential", "velocelectric_potentiality", "MOOSE variable that receives phi.");
+  params.addParam<VariableName>("velocity", "velocity", "MOOSE variable that receives u.");
+  params.addParam<VariableName>("pressure", "pressure", "MOOSE variable that receives p.");
   return params;
 }
 

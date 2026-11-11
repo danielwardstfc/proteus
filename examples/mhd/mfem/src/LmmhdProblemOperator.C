@@ -20,8 +20,33 @@ LmmhdProblemOperator::LmmhdProblemOperator(MFEMProblem & mfem_problem,
 {
 }
 
-void
-LmmhdProblemOperator::Init(mfem::BlockVector &)
+namespace
+{
+std::string describe(const mfem::ParFiniteElementSpace & f)
+{
+  return std::string(f.FEColl()->Name()) + ", vdim " + std::to_string(f.GetVDim()) +
+         ", ordering " + (f.GetOrdering() == mfem::Ordering::byNODES ? "NODES" : "VDIM");
+}
+
+void checkSameSpace(const mfem::ParGridFunction & moose, const mfem::ParGridFunction & lib,
+                    const std::string & name)
+{
+  const auto & mf = *moose.ParFESpace();
+  const auto & lf = *lib.ParFESpace();
+
+  const bool same_fec   = std::string(mf.FEColl()->Name()) == lf.FEColl()->Name();
+  const bool same_vdim  = mf.GetVDim() == lf.GetVDim();
+  // Ordering only changes the layout when there is more than one component.
+  const bool same_order = lf.GetVDim() == 1 || mf.GetOrdering() == lf.GetOrdering();
+  const bool same_size  = moose.Size() == lib.Size();
+
+  if (!(same_fec && same_vdim && same_order && same_size))
+    mooseError("Variable '", name, "' has FE space [", describe(mf), ", size ", moose.Size(),
+               "] but the solver needs [", describe(lf), ", size ", lib.Size(), "]");
+}
+} // namespace
+
+void LmmhdProblemOperator::Init(mfem::BlockVector &)
 {
   mfem::ParMesh & pmesh = _problem.mesh().getMFEMParMesh();
 
@@ -37,10 +62,20 @@ LmmhdProblemOperator::Init(mfem::BlockVector &)
 
   _stepper = std::make_unique<LmmhdTimeStepper>(
       _disc->Spaces(), std::move(bcs), _params, *_logger);
+
+  checkSameSpace(*_problem.getGridFunction("current_density"), _stepper->CurrentDensity(), "current_density");
+  checkSameSpace(*_problem.getGridFunction("electric_potential"), _stepper->Potential(), "electric_potential");
+  checkSameSpace(*_problem.getGridFunction("velocity"), _stepper->Velocity(), "velocity");
+  checkSameSpace(*_problem.getGridFunction("pressure"), _stepper->Pressure(), "pressure");
+
+  // Copy data back to MOOSE variables for first time-step.
+  *_problem.getGridFunction("current_density") = _stepper->CurrentDensity();
+  *_problem.getGridFunction("electric_potential") = _stepper->Potential();
+  *_problem.getGridFunction("velocity") = _stepper->Velocity();
+  *_problem.getGridFunction("pressure") = _stepper->Pressure();
 }
 
-void
-LmmhdProblemOperator::Solve()
+void LmmhdProblemOperator::Solve()
 {
   // The operator builds 1/(theta dt) into its matrices, so MOOSE must use the
   // same, fixed time step.
@@ -54,6 +89,12 @@ LmmhdProblemOperator::Solve()
            << ", time elapsed = " << mfem::toc() << std::endl;
 
   const mfem::real_t residual = _stepper->SolveTimeStep();
+
+  // Copy data back to MOOSE variables.
+  *_problem.getGridFunction("current_density")    = _stepper->CurrentDensity();
+  *_problem.getGridFunction("electric_potential") = _stepper->Potential();
+  *_problem.getGridFunction("velocity")           = _stepper->Velocity();
+  *_problem.getGridFunction("pressure")           = _stepper->Pressure();
 }
 
 #endif
